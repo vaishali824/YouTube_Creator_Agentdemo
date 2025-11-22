@@ -1,0 +1,6 @@
+numpy<2
+requests
+tqdm
+python-dotenv
+mcp
+llama-index
