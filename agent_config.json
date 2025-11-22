@@ -1,0 +1,39 @@
+{
+  "name": "youtube_creator_agent",
+  "version": "1.0",
+  "description": "An AI-powered YouTube content assistant using LLM + MCP + Memory.",
+  "agent_type": "content_generation",
+  "components": {
+    "llm": {
+      "model": "gemini-pro",
+      "temperature": 0.7
+    },
+    "memory": {
+      "type": "short_term",
+      "enabled": true,
+      "max_context": 5
+    },
+    "tools": {
+      "idea_generator": {
+        "description": "Generates YouTube video ideas based on a topic.",
+        "input": "text",
+        "output": "list"
+      },
+      "script_writer": {
+        "description": "Produces a full YouTube script with hook, body, and CTA.",
+        "input": "idea",
+        "output": "script"
+      },
+      "description_generator": {
+        "description": "Creates SEO-optimized YouTube descriptions.",
+        "input": "script",
+        "output": "description"
+      },
+      "summary_tool": {
+        "description": "Summarizes scripts or long content into a short version.",
+        "input": "long_text",
+        "output": "summary"
+      }
+    }
+  }
+}
