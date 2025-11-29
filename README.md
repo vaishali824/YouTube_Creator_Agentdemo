@@ -6,7 +6,7 @@ LLM + MCP + Memory + Tool-Based Agent (End-to-End Demo)
 This repository contains my final capstone project for the Kaggle 5-Day AI Course.
 I built a fully functional AI Agent using MCP (Model Context Protocol) + LLM + Session Memory to assist YouTube creators with content generation.
 
-📌 Project Overview
+# 📌 Project Overview
 
 Creators often struggle with:
 
