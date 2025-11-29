@@ -1,39 +1,111 @@
 {
-  "name": "youtube_creator_agent",
-  "version": "1.0",
-  "description": "An AI-powered YouTube content assistant using LLM + MCP + Memory.",
-  "agent_type": "content_generation",
-  "components": {
-    "llm": {
-      "model": "gemini-pro",
-      "temperature": 0.7
-    },
-    "memory": {
-      "type": "short_term",
-      "enabled": true,
-      "max_context": 5
-    },
-    "tools": {
-      "idea_generator": {
-        "description": "Generates YouTube video ideas based on a topic.",
-        "input": "text",
-        "output": "list"
-      },
-      "script_writer": {
-        "description": "Produces a full YouTube script with hook, body, and CTA.",
-        "input": "idea",
-        "output": "script"
-      },
-      "description_generator": {
-        "description": "Creates SEO-optimized YouTube descriptions.",
-        "input": "script",
-        "output": "description"
-      },
-      "summary_tool": {
-        "description": "Summarizes scripts or long content into a short version.",
-        "input": "long_text",
-        "output": "summary"
-      }
-    }
+ "nbformat": 4,
+ "nbformat_minor": 5,
+ "metadata": {
+  "kernelspec": {
+   "display_name": "Python 3",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "name": "python",
+   "version": "3.x"
   }
+ },
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# YouTube Idea + Thumbnail Generator\n",
+    "\n",
+    "Gemini (for text ideas) + SD-Turbo (fast thumbnails, local).\n",
+    "\n",
+    "*Instructions:* Add your GOOGLE_API_KEY in Kaggle Secrets (or set as env var) before running the Gemini cells. Images are generated locally using stabilityai/sd-turbo (no image API key needed)."
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 1 - Install Dependencies (run once)\n",
+    "!pip install diffusers transformers accelerate safetensors -q"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 2 - Setup Gemini (text generation)\n",
+    "import os\n",
+    "from kaggle_secrets import UserSecretsClient\n",
+    "import google.generativeai as genai\n",
+    "\n",
+    "GOOGLE_API_KEY = UserSecretsClient().get_secret(\"GOOGLE_API_KEY\")\n",
+    "if not GOOGLE_API_KEY:\n",
+    "    raise ValueError(\"❌ GOOGLE_API_KEY is missing in Kaggle Secrets!\")\n",
+    "\n",
+    "genai.configure(api_key=GOOGLE_API_KEY)\n",
+    "text_model = genai.GenerativeModel(\"gemini-2.0-flash-lite\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 3 - Get YouTube Ideas\n",
+    "def get_yt_ideas():\n",
+    "    topic = input(\"Enter your main topic: \")\n",
+    "    prompt = f\"Give 5 unique, clickable YouTube video ideas for the topic: {topic}. Make them simple, short, and beginner-friendly.\"\n",
+    "    try:\n",
+    "        ideas = text_model.generate_content(prompt).text.strip()\n",
+    "        print(\"\n🎯 Generated Ideas:\n\", ideas)\n",
+    "        return ideas\n",
+    "    except Exception as e:\n",
+    "        print(\"❌ Error generating ideas:\", e)\n",
+    "\n",
+    "ideas = get_yt_ideas()\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 4 - Load SD-Turbo (fast model)\n",
+    "import torch\n",
+    "from diffusers import StableDiffusionPipeline, DPMSolverMultistepScheduler\n",
+    "\n",
+    "pipe = StableDiffusionPipeline.from_pretrained(\n",
+    "    \"stabilityai/sd-turbo\",\n",
+    "    torch_dtype=torch.float32\n",
+    ")\n",
+    "pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)\n",
+    "pipe = pipe.to(\"cpu\")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 5 - Thumbnail Generator (fast)\n",
+    "def generate_thumbnail(idea, description):\n",
+    "    prompt = f\"YouTube thumbnail design: Bright vibrant colors, Big bold text, Modern clean layout, Suitable emojis (🔥✨📚⚙️💡), Eye-catching style. Title/Idea: {idea}. Description: {description}\"\n",
+    "    print(\"\n🎨 Generating thumbnail… (fast) ...\")\n",
+    "    image = pipe(prompt).images[0]\n",
+    "    print(\"✅ Thumbnail Ready!\")\n",
+    "    return image\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "metadata": {},
+   "source": [
+    "# CELL 6 - Ask User & Generate Thumbnail\n",
+    "chosen_idea = input(\"\nEnter the idea you want to create a thumbnail for: \")\n",
+    "description = input(\"Enter the description for the thumbnail: \")\n",
+    "thumbnail = generate_thumbnail(chosen_idea, description)\n",
+    "thumbnail\n"
+   ]
+  }
+ ]
 }
