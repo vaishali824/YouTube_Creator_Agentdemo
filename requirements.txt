@@ -1,6 +1,7 @@
-numpy<2
-requests
-tqdm
-python-dotenv
-mcp
-llama-index
+iffusers
+transformers
+accelerate
+safetensors
+google-generativeai
+kaggle
+Pillow
